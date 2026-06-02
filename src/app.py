@@ -328,3 +328,79 @@ st.dataframe(
 
 st.markdown("</div>", unsafe_allow_html=True)
 
+# ---- CRM STORE DIRECTORY PANEL ----
+st.markdown("<div class='premium-card'>", unsafe_allow_html=True)
+st.markdown("<h3 class='outfit-font' style='margin-top:0; color: #1E293B;'>📇 CRM Store Directory</h3>", unsafe_allow_html=True)
+st.markdown("<p style='color: #64748B; font-size: 0.9rem; margin-bottom: 1.5rem;'>Detailed directory views conforming to the Hempflow CRM schema. Expand a store to log events, call, or fetch real-time inventory classification.</p>", unsafe_allow_html=True)
+
+from src.data_processor import map_to_crm_schema
+crm_df = map_to_crm_schema(df)
+
+# Render directory cards
+for idx, row in crm_df.iterrows():
+    store_id = row.get('store_id', str(idx))
+    store_name = row.get('name', 'Unknown Store')
+    phone = row.get('number', '')
+    address = row.get('address', 'No address available')
+    suburb = row.get('suburb', '')
+    workers = row.get('workers', [])
+    
+    title = f"📍 {store_name} ({suburb})" if suburb else f"📍 {store_name}"
+    
+    with st.expander(title, expanded=False):
+        st.markdown(f"**Store ID:** `{store_id}`")
+        st.markdown(f"**Address:** {address}")
+        st.markdown(f"**Phone (Number):** {phone if phone else 'No phone registered'}")
+        
+        # Assigned workers
+        if isinstance(workers, list) and len(workers) > 0:
+            st.markdown(f"**Assigned Workers:** {', '.join(workers)}")
+        else:
+            st.markdown("**Assigned Workers:** 0 workers assigned")
+            
+        # CRM Actions
+        st.markdown("<br/><b>Interactive CRM Actions</b>", unsafe_allow_html=True)
+        col_act1, col_act2, col_act3 = st.columns([1, 1, 2])
+        
+        with col_act1:
+            if st.button("📞 Call Store", key=f"call_{store_id}", use_container_width=True):
+                if phone:
+                    st.info(f"Initiating call to {phone}...")
+                else:
+                    st.warning("No phone registered to call.")
+                    
+        with col_act2:
+            if st.button("📝 Log Visit", key=f"visit_{store_id}", use_container_width=True):
+                st.success(f"Visit logged successfully for {store_name}!")
+                
+        with col_act3:
+            fetch_clicked = st.button("🔍 Fetch Live Inventory", key=f"inv_{store_id}", type="primary", use_container_width=True)
+            
+        if fetch_clicked:
+            st.markdown("<hr style='margin: 1rem 0; border: 0; border-top: 1px solid #E2E8F0;'/>", unsafe_allow_html=True)
+            st.markdown("##### 🚀 Fetching Live Inventory...")
+            with st.spinner("Connecting to site and deducing bedding/litter catalog via Ollama..."):
+                try:
+                    from src.search_api import live_product_extraction
+                    from urllib.parse import urlparse
+                    
+                    website_url = row.get('website_url', '')
+                    if website_url:
+                        parsed_uri = urlparse(website_url)
+                        domain = parsed_uri.netloc or website_url
+                    else:
+                        domain = "example.com"
+                        
+                    results = live_product_extraction(domain, store_id)
+                    if results:
+                        st.success(f"Successfully deduced {len(results)} inventory items!")
+                        # Format list cleanly
+                        results_df = pd.DataFrame(results)
+                        st.dataframe(results_df, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("No specialized animal bedding or cat litter products detected on this site.")
+                except Exception as ex:
+                    st.error(f"Error fetching live inventory: {ex}")
+
+st.markdown("</div>", unsafe_allow_html=True)
+

@@ -32,3 +32,18 @@ def load_and_filter_data(filepath):
         
     return df
 
+def map_to_crm_schema(df):
+    crm_df = df.copy()
+    
+    # Map required columns to CRM schema
+    crm_df['number'] = crm_df['phone_number'] if 'phone_number' in crm_df.columns else ''
+    
+    # Mock missing/default columns
+    if 'workers' not in crm_df.columns:
+        crm_df['workers'] = crm_df.apply(lambda _: [], axis=1)
+        
+    if 'actions' not in crm_df.columns:
+        crm_df['actions'] = crm_df.apply(lambda _: ['Call Store', 'Log Visit', 'Fetch Live Inventory'], axis=1)
+        
+    return crm_df
+
