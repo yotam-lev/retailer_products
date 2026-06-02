@@ -1,0 +1,56 @@
+# Application Configuration Settings
+
+app:
+  name: "Retail Routing Optimizer"
+  version: "1.0.0"
+  debug: true
+
+data:
+  source_path: "./data/sorted_results.csv"
+  delimiter: ","
+  required_columns:
+    - store_id
+    - name
+    - address
+    - suburb
+    - chain?
+    - website_url
+    - phone_number
+    - lat
+    - lng
+    - apportioned_pop
+    - pop_density_per_sqkm
+    - distance_km
+  
+  # Data filtering defaults
+  exclude_chains: true
+
+kpi:
+  current_metric: "pop_density_per_sqkm"
+  grading_scale:
+    min: 1
+    max: 10
+  # Placeholder for future complex calculation weights
+  future_weights:
+    density: 0.6
+    proximity: 0.4
+
+routing:
+  max_stops: 5
+  optimization_metric: "time" # alternatives: distance, kpi_score
+  # If using an external API for precise travel times (e.g., Google Directions, Mapbox)
+  api_provider: "osrm" # Open Source Routing Machine (free alternative for fast dev)
+
+ui:
+  map:
+    default_zoom: 12
+    # Defaulting to an Australian center point for initialization if no origin provided
+    default_center: 
+      lat: -33.8688
+      lng: 151.2093
+    marker_colors:
+      high_kpi: "green"
+      medium_kpi: "orange"
+      low_kpi: "red"
+  table:
+    items_per_page: 50

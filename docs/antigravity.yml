@@ -1,0 +1,24 @@
+version: "1.0"
+project:
+  name: "retailer_kpi_routing"
+  workspaces:
+    - "./retailer_products"
+    - "../hempflow-logistic-crm/" # Ensures visibility of the CRM schema
+sessions:
+  - name: "session_1_serper_deducer"
+    max_tokens: 1500
+    temperature: 0.2 # Low temperature for reliable JSON/Regex parsing
+    context_files:
+      - "src/serper_search.py"
+      - "src/scraper.py"
+      - "src/search_api.py"
+    instructions_file: "session_1_parser.md"
+  
+  - name: "session_2_crm_ui"
+    max_tokens: 2000
+    temperature: 0.4
+    context_files:
+      - "src/app.py"
+      - "src/data_processor.py"
+      - "../hempflow-logistic-crm/schemas/" # Placeholder path to your CRM schema
+    instructions_file: "session_2_ui.md"
